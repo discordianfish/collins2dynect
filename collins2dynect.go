@@ -16,6 +16,7 @@ import (
 var (
 	// FIXME: add template for hostname/subdomain
 	domain      = flag.String("domain", "example.com", "domain to manage")
+	dryRun      = flag.Bool("dry", false, "dry run, do not update dyn")
 	dynCustomer = flag.String("dyn.customer", "", "customer")
 	dynUser     = flag.String("dyn.user", "", "username")
 	dynPass     = flag.String("dyn.pass", "", "password")
@@ -38,6 +39,9 @@ type dynRecords struct {
 }
 
 func deleteAllRecords(domain string, recordType string) error {
+	if *dryRun {
+		return nil
+	}
 	resp, err := dynClient.Request("GET", fmt.Sprintf("AllRecord/%s", domain), nil)
 	if err != nil {
 		return err
@@ -81,11 +85,17 @@ func updateZone(domain string, records map[string]dynRecords) error {
 
 		path := fmt.Sprintf("ARecord/%s/%s", domain, fqdn)
 		log.Printf("+ %s", path)
+		if *dryRun {
+			continue
+		}
 		if err := dynClient.Execute("POST", path, bytes.NewReader(recordBytes)); err != nil {
 			return err
 		}
 	}
 	log.Printf("Publishing domain %s", domain)
+	if *dryRun {
+		return nil
+	}
 	if err := dynClient.Execute("PUT", fmt.Sprintf("Zone/%s", domain), bytes.NewReader([]byte(publishTrue))); err != nil {
 		log.Fatal(err)
 	}
@@ -94,16 +104,19 @@ func updateZone(domain string, records map[string]dynRecords) error {
 
 func main() {
 	flag.Parse()
-	if *dynCustomer == "" || *dynUser == "" || *dynPass == "" {
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
+	if !*dryRun {
+		if *dynCustomer == "" || *dynUser == "" || *dynPass == "" {
+			log.Printf("Please provide dyn credentials!")
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
 
-	dc, err := dynect.New(*dynCustomer, *dynUser, *dynPass)
-	if err != nil {
-		log.Fatal(err)
+		dc, err := dynect.New(*dynCustomer, *dynUser, *dynPass)
+		if err != nil {
+			log.Fatal(err)
+		}
+		dynClient = dc
 	}
-	dynClient = dc
 	collinsClient := collins.New(*collinsUser, *collinsPass, *collinsUrl)
 
 	assets, err := collinsClient.FindAllAssets()
