@@ -76,20 +76,22 @@ func deleteAllRecords(domain string, recordType string) error {
 	return nil
 }
 
-func updateZone(domain string, records map[string]dynRecords) error {
-	for fqdn, record := range records {
-		recordBytes, err := json.Marshal(record)
-		if err != nil {
-			return err
-		}
+func updateZone(domain string, recordMap map[string][]dynRecords) error {
+	for fqdn, records := range recordMap {
+		for _, record := range records {
+			recordBytes, err := json.Marshal(record)
+			if err != nil {
+				return err
+			}
 
-		path := fmt.Sprintf("ARecord/%s/%s", domain, fqdn)
-		log.Printf("+ %s", path)
-		if *dryRun {
-			continue
-		}
-		if err := dynClient.Execute("POST", path, bytes.NewReader(recordBytes)); err != nil {
-			return err
+			path := fmt.Sprintf("ARecord/%s/%s", domain, fqdn)
+			log.Printf("+ %s", path)
+			if *dryRun {
+				continue
+			}
+			if err := dynClient.Execute("POST", path, bytes.NewReader(recordBytes)); err != nil {
+				return err
+			}
 		}
 	}
 	log.Printf("Publishing domain %s", domain)
@@ -125,14 +127,14 @@ func main() {
 	}
 
 	if err := deleteAllRecords(*domain, "ARecord"); err != nil {
-		log.Fatal(err)
+		log.Fatalf("Couldn't delete old records: %s", err)
 	}
 
-	records := map[string]dynRecords{}
+	records := map[string][]dynRecords{}
 	for _, asset := range assets.Data.Data {
 		addresses, err := collinsClient.GetAssetAddresses(asset.Asset.Tag)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Couldn't get adresses from collins: %s", err)
 		}
 		aliases := map[string][]string{}
 		for _, alias := range strings.Fields(asset.Attributes["0"]["DNS_ALIASES"]) {
@@ -166,15 +168,16 @@ func main() {
 					"address": address.Address,
 				},
 			}
-			records[fqdn] = record
+			records[fqdn] = append(records[fqdn], record)
 			if names, ok := aliases[pool]; ok {
 				for _, name := range names {
-					records[fmt.Sprintf("%s.%s", name, *domain)] = record
+					f := fmt.Sprintf("%s.%s", name, *domain)
+					records[f] = append(records[f], record)
 				}
 			}
 		}
 	}
 	if err := updateZone(*domain, records); err != nil {
-		log.Fatal(err)
+		log.Fatalf("Couldn't update zone: %s", err)
 	}
 }
