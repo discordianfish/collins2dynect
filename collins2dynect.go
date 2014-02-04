@@ -132,6 +132,11 @@ func main() {
 
 	records := map[string][]dynRecords{}
 	for _, asset := range assets.Data.Data {
+		if asset.Attributes["0"]["PRIMARY_ROLE"] == "" ||
+			asset.Attributes["0"]["SECONDARY_ROLE"] == "" {
+			log.Printf("Warning: %s is missing required attributes, skipping", asset.Asset.Tag)
+			continue
+		}
 		addresses, err := collinsClient.GetAssetAddresses(asset.Asset.Tag)
 		if err != nil {
 			log.Fatalf("Couldn't get adresses from collins: %s", err)
