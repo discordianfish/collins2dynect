@@ -131,12 +131,16 @@ func main() {
 	}
 
 	records := map[string][]dynRecords{}
+	idMap := map[string]int{}
 	for _, asset := range assets.Data.Data {
+		log.Printf("? %s", asset.Asset.Tag)
 		if asset.Attributes["0"]["PRIMARY_ROLE"] == "" ||
 			asset.Attributes["0"]["SECONDARY_ROLE"] == "" {
 			log.Printf("Warning: %s is missing required attributes, skipping", asset.Asset.Tag)
 			continue
 		}
+		idMap[asset.Attributes["0"]["PRIMARY_ROLE"]]++
+
 		addresses, err := collinsClient.GetAssetAddresses(asset.Asset.Tag)
 		if err != nil {
 			log.Fatalf("Couldn't get adresses from collins: %s", err)
@@ -156,17 +160,16 @@ func main() {
 			pool := strings.ToLower(address.Pool)
 			hostname := strings.ToLower(fmt.Sprintf("%s%03d",
 				asset.Attributes["0"]["PRIMARY_ROLE"],
-				asset.Asset.ID,
+				idMap[asset.Attributes["0"]["PRIMARY_ROLE"]],
 			))
 
-			zone := strings.ToLower(strings.Join([]string{
+			fqdn := strings.ToLower(strings.Join([]string{
 				hostname,
 				asset.Attributes["0"]["SECONDARY_ROLE"],
 				pool,
 				*domain,
 			}, "."))
 
-			fqdn := fmt.Sprintf("%s.%s", hostname, zone)
 			log.Printf("= %s -> %s:", fqdn, address.Address)
 			record := dynRecords{
 				RData: map[string]string{
