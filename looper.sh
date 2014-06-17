@@ -10,6 +10,6 @@ fi
 echo "Running every $INTERVAL seconds"
 while true
 do
-	./collins2dynect "$COLLINS" "$@"
+	./collins2dynect $COLLINS "$@"
 	sleep $INTERVAL
 done
