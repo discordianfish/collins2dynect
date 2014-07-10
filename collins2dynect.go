@@ -54,7 +54,7 @@ func deleteAllRecords(domain string, recordType string) error {
 
 	allRecords := &dynAllRecords{}
 	if err := json.Unmarshal(body, allRecords); err != nil {
-		return err
+		return fmt.Errorf("Couldn't unmarshal: %s, data: %s", err, body)
 	}
 
 	for _, path := range allRecords.Data {
@@ -76,12 +76,13 @@ func deleteAllRecords(domain string, recordType string) error {
 	return nil
 }
 
-func updateZone(domain string, recordMap map[string][]dynRecords) error {
+func updateZone(domain string, recordMap map[string][]dynRecords) (int, error) {
+	n := 0
 	for fqdn, records := range recordMap {
 		for _, record := range records {
 			recordBytes, err := json.Marshal(record)
 			if err != nil {
-				return err
+				return n, err
 			}
 
 			path := fmt.Sprintf("ARecord/%s/%s", domain, fqdn)
@@ -90,18 +91,16 @@ func updateZone(domain string, recordMap map[string][]dynRecords) error {
 				continue
 			}
 			if err := dynClient.Execute("POST", path, bytes.NewReader(recordBytes)); err != nil {
-				return err
+				return n, err
 			}
+			n++
 		}
 	}
 	log.Printf("Publishing domain %s", domain)
 	if *dryRun {
-		return nil
+		return n, nil
 	}
-	if err := dynClient.Execute("PUT", fmt.Sprintf("Zone/%s", domain), bytes.NewReader([]byte(publishTrue))); err != nil {
-		log.Fatal(err)
-	}
-	return nil
+	return n, dynClient.Execute("PUT", fmt.Sprintf("Zone/%s", domain), bytes.NewReader([]byte(publishTrue)))
 }
 
 func main() {
@@ -185,7 +184,9 @@ func main() {
 			}
 		}
 	}
-	if err := updateZone(*domain, records); err != nil {
+	n, err := updateZone(*domain, records)
+	if err != nil {
 		log.Fatalf("Couldn't update zone: %s", err)
 	}
+	fmt.Println("collins2dynect_updates", n)
 }

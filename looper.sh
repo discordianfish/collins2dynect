@@ -3,13 +3,19 @@
 
 if [ -n "$COLLINS_PORT" ]
 then
-	COLLINS="-collins.url=$(echo $COLLINS_PORT|sed 's/^tcp/http/')/api"
+  COLLINS="-collins.url=$(echo $COLLINS_PORT|sed 's/^tcp/http/')/api"
 fi
 
 
 echo "Running every $INTERVAL seconds"
 while true
 do
-	./collins2dynect $COLLINS "$@"
-	sleep $INTERVAL
+  ./collins2dynect $COLLINS "$@" | tee /tmp/collins2dynect.log
+  if [ "$?" -eq "0" ]
+  then
+    cat /tmp/collins2dynect.log
+    [ -n "$PUSHGATEWAY" ] && tail -1 /tmp/collins2dynect.log | curl --data-binary @- $PUSHGATEWAY
+  fi
+  tail -1 /tmp/collins2dynect.log
+  sleep $INTERVAL
 done
