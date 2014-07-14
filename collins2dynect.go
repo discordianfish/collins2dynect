@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -188,5 +189,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't update zone: %s", err)
 	}
-	fmt.Println("collins2dynect_updates", n)
+	fmt.Println("collins2dynect_updates", n, time.Now().Unix())
 }
