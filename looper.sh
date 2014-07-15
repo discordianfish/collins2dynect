@@ -14,7 +14,7 @@ do
   if [ "$?" -eq "0" ]
   then
     cat /tmp/collins2dynect.log
-    [ -n "$PUSHGATEWAY" ] && tail -1 /tmp/collins2dynect.log | curl --data-binary @- $PUSHGATEWAY
+    [ -n "$PUSHGATEWAY" ] && ( tail -1 /tmp/collins2dynect.log; date +"last_run %s" ) | curl --data-binary @- "$PUSHGATEWAY"
   fi
   tail -1 /tmp/collins2dynect.log
   sleep $INTERVAL
