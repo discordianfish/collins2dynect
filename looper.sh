@@ -10,7 +10,7 @@ fi
 echo "Running every $INTERVAL seconds"
 while true
 do
-  ./collins2dynect $COLLINS "$@" | tee /tmp/collins2dynect.log
+  ./collins2dynect $COLLINS "$@" > /tmp/collins2dynect.log
   if [ "$?" -eq "0" ]
   then
     cat /tmp/collins2dynect.log
