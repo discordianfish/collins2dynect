@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/discordianfish/go-collins/collins"
-	"github.com/discordianfish/go-dynect/dynect"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/discordianfish/go-collins/collins"
+	"github.com/discordianfish/go-dynect/dynect"
 )
 
 var (
@@ -43,12 +43,7 @@ func deleteAllRecords(domain string, recordType string) error {
 	if *dryRun {
 		return nil
 	}
-	resp, err := dynClient.Request("GET", fmt.Sprintf("AllRecord/%s", domain), nil)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := dynClient.Request("GET", fmt.Sprintf("AllRecord/%s", domain), nil)
 	if err != nil {
 		return err
 	}
