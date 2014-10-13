@@ -43,9 +43,10 @@ func deleteAllRecords(domain string, recordType string) error {
 	if *dryRun {
 		return nil
 	}
-	body, err := dynClient.Request("GET", fmt.Sprintf("AllRecord/%s", domain), nil)
+	url := fmt.Sprintf("AllRecord/%s", domain)
+	body, err := dynClient.Request("GET", url, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error getting %s: %s", url, err)
 	}
 
 	allRecords := &dynAllRecords{}
@@ -87,7 +88,7 @@ func updateZone(domain string, recordMap map[string][]dynRecords) (int, error) {
 				continue
 			}
 			if err := dynClient.Execute("POST", path, bytes.NewReader(recordBytes)); err != nil {
-				return n, err
+				return n, fmt.Errorf("Couldn't POST %#v as %s: %s", record, recordBytes, err)
 			}
 			n++
 		}
