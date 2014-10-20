@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/discordianfish/go-collins/collins"
-	"github.com/discordianfish/go-dynect/dynect"
+	"github.com/docker-infra/go-collins/collins"
+	"github.com/docker-infra/go-dynect/dynect"
 )
 
 var (
