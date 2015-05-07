@@ -11,6 +11,9 @@ collins2dynect will:
 4. Add a DNS record [alias].[domain] for each alias in `DNS_ALIASES`
 5. Publish the zone
 
+## prerequisites
+1. collins-shell
+  * gem install collins_shell
 
 ## Aliases
 To add a record 'foo.[domain]' pointing to asset 'bar's address from
