@@ -12,8 +12,7 @@ collins2dynect will:
 5. Publish the zone
 
 ## prerequisites
-1. collins-shell
-  * gem install collins_shell
+1. [collins-shell](https://tumblr.github.io/collins/tools.html#collins-shell)
 
 ## Aliases
 To add a record 'foo.[domain]' pointing to asset 'bar's address from
