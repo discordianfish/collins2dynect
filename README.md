@@ -13,6 +13,8 @@ collins2dynect will:
 
 ## prerequisites
 1. [collins-shell](https://tumblr.github.io/collins/tools.html#collins-shell)
+2. go get github.com/docker-infra/go-dynect
+3. go get github.com/docker-infra/go-collins/collins
 
 ## Aliases
 To add a record 'foo.[domain]' pointing to asset 'bar's address from
